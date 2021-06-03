@@ -19,9 +19,11 @@
   },
   "homepage": "https://gitlab.com/baseafrique/lola-serve#readme",
   "dependencies": {
+    "do-wrapper": "^4.5.1",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "node-ssh": "^11.1.1"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
