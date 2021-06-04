@@ -1,19 +1,30 @@
 import DigitalOcean from "do-wrapper";
 const digitalOceanClient = new DigitalOcean(process.env.DIGITALOCEAN_TOKEN);
 
-import NodeSSH from "node-ssh";
+import { NodeSSH } from "node-ssh";
 let sshClient = new NodeSSH();
 
 
-export const registerSubdomainForLolaFinance = (subdomain) => {
+export const registerSubdomainForLolaFinance = async (subdomain) => {
   try {
     const frontendServerIp = process.env.FRONTEND_SERVER_IP;
     let response = await digitalOceanClient.domains.createRecord("lolafinance.com", { name: subdomain, type: 'A', ttl: 3600, data: frontendServerIp })
 
-    if (response) {
-      console.log(response);
+    console.log(response);
+    // if (response) {
+    //   console.log(response);
+    //   return { success: true, reason: `${subdomain} was successfully created` }
+    // }
+
+    let sslResponse = await generateSSLForSubdomain(`${subdomain}.lolafinance.com`);
+
+    console.log(sslResponse);
+
+    if (sslResponse) {
+
       return { success: true, reason: `${subdomain} was successfully created` }
     }
+
 
   }
   catch (err) {
@@ -22,8 +33,10 @@ export const registerSubdomainForLolaFinance = (subdomain) => {
   }
 }
 
-export const generateSSLForSubdomain = (fullyQualifiedSubdomain) => {
+export const generateSSLForSubdomain = async (fullyQualifiedSubdomain) => {
   try {
+
+    const sampleProxy = "https://s3.wasabisys.com/lola-webstore/web";
 
     await sshClient.connect({
       host: process.env.FRONTEND_SERVER_IP,
@@ -34,7 +47,7 @@ export const generateSSLForSubdomain = (fullyQualifiedSubdomain) => {
 
     let feedback = await sshClient.putFile("./setupReverseProxyWithSSL.sh", "/opt/setupReverseProxyWithSSL.sh")
 
-    let commandResponse = await sshClient.execCommand(`sh /opt/setupReverseProxyWithSSL.sh ${fullyQualifiedSubdomain}`);
+    let commandResponse = await sshClient.execCommand(`sh /opt/setupReverseProxyWithSSL.sh ${fullyQualifiedSubdomain} ${sampleProxy}`);
 
     console.log(commandResponse.stdout)
 
