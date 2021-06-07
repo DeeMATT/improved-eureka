@@ -26,7 +26,7 @@ var registerSubdomainForLolaFinance = exports.registerSubdomainForLolaFinance = 
     var frontendServerIp = process.env.FRONTEND_SERVER_IP;
     var response = await digitalOceanClient.domains.createRecord("lolafinance.com", { name: subdomain, type: 'A', ttl: 3600, data: frontendServerIp });
 
-    console.log('Ocean domain', response);
+    console.log("Ocean domain", response);
     // if (response) {
     //   console.log(response);
     //   return { success: true, reason: `${subdomain} was successfully created` }
@@ -58,13 +58,10 @@ var generateSSLForSubdomain = exports.generateSSLForSubdomain = async function g
       password: process.env.FRONTEND_SERVER_PASSWORD
     });
 
-    var absolutePath = _path2.default.resolve("./setupReverseProxyWithSSL.sh");
+    var absolutePath = _path2.default.resolve("./digitalocean/setupReverseProxyWithSSL.sh");
     console.log('path', absolutePath);
 
-    var feedback = await sshClient.putFile("/home/sommy/project/BaseAfrique/Lola/lola-serve/digitalocean/setupReverseProxyWithSSL.sh", "/opt/setupReverseProxyWithSSL.sh");
-
-    console.log("fff", feedback.stdout);
-    console.log("fff err", feedback.stderr);
+    await sshClient.putFile(absolutePath, "/opt/setupReverseProxyWithSSL.sh");
 
     var commandResponse = await sshClient.execCommand("#!/bin/bash /opt/setupReverseProxyWithSSL.sh " + fullyQualifiedSubdomain + " " + sampleProxy);
 
@@ -72,7 +69,6 @@ var generateSSLForSubdomain = exports.generateSSLForSubdomain = async function g
 
     if (commandResponse.stderr) {
       throw new Error(commandResponse.stderr);
-      // return { success: false, reason: commandResponse.stderr }
     }
 
     return { success: true, reason: "successfully setup ssl for subdomain " + fullyQualifiedSubdomain };

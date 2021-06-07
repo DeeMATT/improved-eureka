@@ -11,7 +11,7 @@ export const registerSubdomainForLolaFinance = async (subdomain) => {
     const frontendServerIp = process.env.FRONTEND_SERVER_IP;
     let response = await digitalOceanClient.domains.createRecord("lolafinance.com", { name: subdomain, type: 'A', ttl: 3600, data: frontendServerIp })
 
-    console.log('Ocean domain', response);
+    console.log("Ocean domain", response);
     // if (response) {
     //   console.log(response);
     //   return { success: true, reason: `${subdomain} was successfully created` }
@@ -46,7 +46,7 @@ export const generateSSLForSubdomain = async (fullyQualifiedSubdomain) => {
       password: process.env.FRONTEND_SERVER_PASSWORD
     });
 
-    const absolutePath = path.resolve("./setupReverseProxyWithSSL.sh");
+    const absolutePath = path.resolve("./digitalocean/setupReverseProxyWithSSL.sh");
     console.log('path', absolutePath);
 
     await sshClient.putFile(absolutePath, "/opt/setupReverseProxyWithSSL.sh");
@@ -57,7 +57,6 @@ export const generateSSLForSubdomain = async (fullyQualifiedSubdomain) => {
 
     if (commandResponse.stderr) {
       throw new Error(commandResponse.stderr);
-      // return { success: false, reason: commandResponse.stderr }
     }
 
     return { success: true, reason: `successfully setup ssl for subdomain ${fullyQualifiedSubdomain}` }
