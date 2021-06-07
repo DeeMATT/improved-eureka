@@ -10,7 +10,7 @@ export const registerSubdomainForLolaFinance = async (subdomain) => {
     const frontendServerIp = process.env.FRONTEND_SERVER_IP;
     let response = await digitalOceanClient.domains.createRecord("lolafinance.com", { name: subdomain, type: 'A', ttl: 3600, data: frontendServerIp })
 
-    console.log(response);
+    console.log('Ocean domain', response);
     // if (response) {
     //   console.log(response);
     //   return { success: true, reason: `${subdomain} was successfully created` }
@@ -18,7 +18,7 @@ export const registerSubdomainForLolaFinance = async (subdomain) => {
 
     let sslResponse = await generateSSLForSubdomain(`${subdomain}.lolafinance.com`);
 
-    console.log(sslResponse);
+    console.log('ssl res',sslResponse);
 
     if (sslResponse) {
 
@@ -45,14 +45,15 @@ export const generateSSLForSubdomain = async (fullyQualifiedSubdomain) => {
       password: process.env.FRONTEND_SERVER_PASSWORD
     });
 
-    let feedback = await sshClient.putFile("./setupReverseProxyWithSSL.sh", "/opt/setupReverseProxyWithSSL.sh")
+    let feedback = await sshClient.putFile("/home/sommy/project/BaseAfrique/Lola/lola-serve/digitalocean/setupReverseProxyWithSSL.sh", "/opt/setupReverseProxyWithSSL.sh")
 
-    let commandResponse = await sshClient.execCommand(`sh /opt/setupReverseProxyWithSSL.sh ${fullyQualifiedSubdomain} ${sampleProxy}`);
+    let commandResponse = await sshClient.execCommand(`#!/bin/bash /opt/setupReverseProxyWithSSL.sh ${fullyQualifiedSubdomain} ${sampleProxy}`);
 
-    console.log(commandResponse.stdout)
+    console.log('ssl', commandResponse.stdout)
 
     if (commandResponse.stderr) {
-      return { success: false, reason: commandResponse.stderr }
+      throw new Error(commandResponse.stderr);
+      // return { success: false, reason: commandResponse.stderr }
     }
 
     return { success: true, reason: `successfully setup ssl for subdomain ${fullyQualifiedSubdomain}` }
@@ -60,7 +61,7 @@ export const generateSSLForSubdomain = async (fullyQualifiedSubdomain) => {
 
   } catch (err) {
     console.error(err);
-    return { success: false, reason: err.message }
+    throw err;
   }
 
 }
