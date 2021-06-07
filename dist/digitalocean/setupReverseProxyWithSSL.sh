@@ -1,4 +1,7 @@
 function generateReverseProxy() {
+
+  echo "about to start executing on the server within the function"
+
   local fqdn = $1
   local proxyTarget = $2
 
@@ -33,5 +36,7 @@ function generateReverseProxy() {
   sudo certbot --nginx -d $fqdn -d www."$fqdn"
 
 }
+
+echo "about to call function to start domain installation"
 
 generateReverseProxy "$1" "$2"

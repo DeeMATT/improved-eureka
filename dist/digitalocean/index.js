@@ -5,6 +5,10 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.generateSSLForSubdomain = exports.registerSubdomainForLolaFinance = undefined;
 
+var _path = require("path");
+
+var _path2 = _interopRequireDefault(_path);
+
 var _doWrapper = require("do-wrapper");
 
 var _doWrapper2 = _interopRequireDefault(_doWrapper);
@@ -54,7 +58,13 @@ var generateSSLForSubdomain = exports.generateSSLForSubdomain = async function g
       password: process.env.FRONTEND_SERVER_PASSWORD
     });
 
+    var absolutePath = _path2.default.resolve("./setupReverseProxyWithSSL.sh");
+    console.log('path', absolutePath);
+
     var feedback = await sshClient.putFile("/home/sommy/project/BaseAfrique/Lola/lola-serve/digitalocean/setupReverseProxyWithSSL.sh", "/opt/setupReverseProxyWithSSL.sh");
+
+    console.log("fff", feedback.stdout);
+    console.log("fff err", feedback.stderr);
 
     var commandResponse = await sshClient.execCommand("#!/bin/bash /opt/setupReverseProxyWithSSL.sh " + fullyQualifiedSubdomain + " " + sampleProxy);
 

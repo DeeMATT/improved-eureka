@@ -1,3 +1,4 @@
+import path from "path";
 import DigitalOcean from "do-wrapper";
 const digitalOceanClient = new DigitalOcean(process.env.DIGITALOCEAN_TOKEN);
 
@@ -45,7 +46,10 @@ export const generateSSLForSubdomain = async (fullyQualifiedSubdomain) => {
       password: process.env.FRONTEND_SERVER_PASSWORD
     });
 
-    let feedback = await sshClient.putFile("/home/sommy/project/BaseAfrique/Lola/lola-serve/digitalocean/setupReverseProxyWithSSL.sh", "/opt/setupReverseProxyWithSSL.sh")
+    const absolutePath = path.resolve("./setupReverseProxyWithSSL.sh");
+    console.log('path', absolutePath);
+
+    await sshClient.putFile(absolutePath, "/opt/setupReverseProxyWithSSL.sh");
 
     let commandResponse = await sshClient.execCommand(`#!/bin/bash /opt/setupReverseProxyWithSSL.sh ${fullyQualifiedSubdomain} ${sampleProxy}`);
 
