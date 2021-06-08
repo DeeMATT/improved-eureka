@@ -19,6 +19,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var digitalOceanClient = new _doWrapper2.default(process.env.DIGITALOCEAN_TOKEN);
 
+// import Client from "ssh2-sftp-client";
+
+
 var sshClient = new _nodeSsh.NodeSSH();
 
 var registerSubdomainForLolaFinance = exports.registerSubdomainForLolaFinance = async function registerSubdomainForLolaFinance(subdomain) {
@@ -49,7 +52,7 @@ var registerSubdomainForLolaFinance = exports.registerSubdomainForLolaFinance = 
 var generateSSLForSubdomain = exports.generateSSLForSubdomain = async function generateSSLForSubdomain(fullyQualifiedSubdomain) {
   try {
 
-    var sampleProxy = "https://s3.wasabisys.com/lola-webstore/web";
+    var sampleProxy = "https://s3.wasabisys.com/lola-webstore/web/";
 
     await sshClient.connect({
       host: process.env.FRONTEND_SERVER_IP,
@@ -63,7 +66,31 @@ var generateSSLForSubdomain = exports.generateSSLForSubdomain = async function g
 
     await sshClient.putFile(absolutePath, "/opt/setupReverseProxyWithSSL.sh");
 
-    var commandResponse = await sshClient.execCommand("#!/bin/bash /opt/setupReverseProxyWithSSL.sh " + fullyQualifiedSubdomain + " " + sampleProxy);
+    await sshClient.execCommand("chmod +x /opt/setupReverseProxyWithSSL.sh");
+
+    // let filePath = '/opt/setupReverseProxyWithSSL.sh';
+    // let newMode = 0o755;  // rw-r-r
+    // let client = new Client();
+
+    // const config = {
+    //   host: process.env.FRONTEND_SERVER_IP,
+    //   port: '22',
+    //   username: process.env.FRONTEND_SERVER_USER,
+    //   password: process.env.FRONTEND_SERVER_PASSWORD
+    // }
+
+    // client.connect(config)
+    //   .then(() => {
+    //     return client.chmod(filePath, newMode);
+    //   })
+    //   .then(() => {
+    //     return client.end();
+    //   })
+    //   .catch(err => {
+    //     console.error(err.message);
+    //   });
+
+    var commandResponse = await sshClient.execCommand("/opt/setupReverseProxyWithSSL.sh " + fullyQualifiedSubdomain + " " + sampleProxy);
 
     console.log('ssl', commandResponse.stdout);
 

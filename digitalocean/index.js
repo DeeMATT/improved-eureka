@@ -3,8 +3,8 @@ import DigitalOcean from "do-wrapper";
 const digitalOceanClient = new DigitalOcean(process.env.DIGITALOCEAN_TOKEN);
 
 import { NodeSSH } from "node-ssh";
-let sshClient = new NodeSSH();
 
+let sshClient = new NodeSSH();
 
 export const registerSubdomainForLolaFinance = async (subdomain) => {
   try {
@@ -12,10 +12,6 @@ export const registerSubdomainForLolaFinance = async (subdomain) => {
     let response = await digitalOceanClient.domains.createRecord("lolafinance.com", { name: subdomain, type: 'A', ttl: 3600, data: frontendServerIp })
 
     console.log("Ocean domain", response);
-    // if (response) {
-    //   console.log(response);
-    //   return { success: true, reason: `${subdomain} was successfully created` }
-    // }
 
     let sslResponse = await generateSSLForSubdomain(`${subdomain}.lolafinance.com`);
 
@@ -37,7 +33,7 @@ export const registerSubdomainForLolaFinance = async (subdomain) => {
 export const generateSSLForSubdomain = async (fullyQualifiedSubdomain) => {
   try {
 
-    const sampleProxy = "https://s3.wasabisys.com/lola-webstore/web";
+    const sampleProxy = "https://s3.wasabisys.com/lola-webstore/web/";
 
     await sshClient.connect({
       host: process.env.FRONTEND_SERVER_IP,
@@ -51,12 +47,14 @@ export const generateSSLForSubdomain = async (fullyQualifiedSubdomain) => {
 
     await sshClient.putFile(absolutePath, "/opt/setupReverseProxyWithSSL.sh");
 
-    let commandResponse = await sshClient.execCommand(`#!/bin/bash /opt/setupReverseProxyWithSSL.sh ${fullyQualifiedSubdomain} ${sampleProxy}`);
+    await sshClient.execCommand("chmod +x /opt/setupReverseProxyWithSSL.sh");
+
+    let commandResponse = await sshClient.execCommand(`/opt/setupReverseProxyWithSSL.sh ${fullyQualifiedSubdomain} ${sampleProxy}`);
 
     console.log('ssl', commandResponse.stdout)
 
     if (commandResponse.stderr) {
-      throw new Error(commandResponse.stderr);
+      console.error(commandResponse.stderr);
     }
 
     return { success: true, reason: `successfully setup ssl for subdomain ${fullyQualifiedSubdomain}` }
