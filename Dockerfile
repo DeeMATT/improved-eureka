@@ -1,0 +1,20 @@
+FROM node:14
+
+ENV NODE_ENV=production
+
+ENV DIGITALOCEAN_TOKEN=48e0a228e9c6a98980f588a3c26a571aeea83f98c4ddc8984f846734758ca0ec
+ENV FRONTEND_SERVER_IP=142.93.50.190
+ENV FRONTEND_SERVER_USER=root
+ENV FRONTEND_SERVER_PASSWORD=BAfrique5x
+
+WORKDIR /usr/src/app
+
+COPY ["package.json", "package-lock.json*", "./"]
+
+RUN npm install
+
+COPY . .
+
+EXPOSE 8099
+
+CMD [ "npm", "start" ]
