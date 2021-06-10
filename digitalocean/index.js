@@ -33,8 +33,6 @@ export const registerSubdomainForLolaFinance = async (subdomain) => {
 export const generateSSLForSubdomain = async (fullyQualifiedSubdomain) => {
   try {
 
-    const sampleProxy = "https://s3.wasabisys.com/lola-webstore/web/";
-
     await sshClient.connect({
       host: process.env.FRONTEND_SERVER_IP,
       port: 22,
@@ -42,14 +40,14 @@ export const generateSSLForSubdomain = async (fullyQualifiedSubdomain) => {
       password: process.env.FRONTEND_SERVER_PASSWORD
     });
 
-    const absolutePath = path.resolve("./digitalocean/setupReverseProxyWithSSL.sh");
+    const absolutePath = path.resolve("./digitalocean/setupSubDomainReverseProxyWithSSL.sh");
     console.log('path', absolutePath);
 
-    await sshClient.putFile(absolutePath, "/opt/setupReverseProxyWithSSL.sh");
+    await sshClient.putFile(absolutePath, "/opt/setupSubDomainReverseProxyWithSSL.sh");
 
-    await sshClient.execCommand("chmod +x /opt/setupReverseProxyWithSSL.sh");
+    await sshClient.execCommand("chmod +x /opt/setupSubDomainReverseProxyWithSSL.sh");
 
-    let commandResponse = await sshClient.execCommand(`/opt/setupReverseProxyWithSSL.sh ${fullyQualifiedSubdomain} ${sampleProxy}`);
+    let commandResponse = await sshClient.execCommand(`/opt/setupSubDomainReverseProxyWithSSL.sh ${fullyQualifiedSubdomain}`);
 
     console.log('ssl', commandResponse.stdout)
 
