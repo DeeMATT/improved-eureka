@@ -17,7 +17,7 @@ app.get('/', async (req, res) => {
 })
 
 
-app.post('/lolasubdomain', async (req, res) => {
+app.post('/subdomain', async (req, res) => {
   const { name } = req.body;
 
   let result = await registerSubdomainForLolaFinance(name);
