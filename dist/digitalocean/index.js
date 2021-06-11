@@ -19,9 +19,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var digitalOceanClient = new _doWrapper2.default(process.env.DIGITALOCEAN_TOKEN);
 
-// import Client from "ssh2-sftp-client";
-
-
 var sshClient = new _nodeSsh.NodeSSH();
 
 var registerSubdomainForLolaFinance = exports.registerSubdomainForLolaFinance = async function registerSubdomainForLolaFinance(subdomain) {
@@ -30,10 +27,6 @@ var registerSubdomainForLolaFinance = exports.registerSubdomainForLolaFinance = 
     var response = await digitalOceanClient.domains.createRecord("lolafinance.com", { name: subdomain, type: 'A', ttl: 3600, data: frontendServerIp });
 
     console.log("Ocean domain", response);
-    // if (response) {
-    //   console.log(response);
-    //   return { success: true, reason: `${subdomain} was successfully created` }
-    // }
 
     var sslResponse = await generateSSLForSubdomain(subdomain + ".lolafinance.com");
 
@@ -68,34 +61,12 @@ var generateSSLForSubdomain = exports.generateSSLForSubdomain = async function g
 
     await sshClient.execCommand("chmod +x /opt/setupReverseProxyWithSSL.sh");
 
-    // let filePath = '/opt/setupReverseProxyWithSSL.sh';
-    // let newMode = 0o755;  // rw-r-r
-    // let client = new Client();
-
-    // const config = {
-    //   host: process.env.FRONTEND_SERVER_IP,
-    //   port: '22',
-    //   username: process.env.FRONTEND_SERVER_USER,
-    //   password: process.env.FRONTEND_SERVER_PASSWORD
-    // }
-
-    // client.connect(config)
-    //   .then(() => {
-    //     return client.chmod(filePath, newMode);
-    //   })
-    //   .then(() => {
-    //     return client.end();
-    //   })
-    //   .catch(err => {
-    //     console.error(err.message);
-    //   });
-
     var commandResponse = await sshClient.execCommand("/opt/setupReverseProxyWithSSL.sh " + fullyQualifiedSubdomain + " " + sampleProxy);
 
     console.log('ssl', commandResponse.stdout);
 
     if (commandResponse.stderr) {
-      throw new Error(commandResponse.stderr);
+      console.error(commandResponse.stderr);
     }
 
     return { success: true, reason: "successfully setup ssl for subdomain " + fullyQualifiedSubdomain };
