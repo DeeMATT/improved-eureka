@@ -64,3 +64,61 @@ export const generateSSLForSubdomain = async (fullyQualifiedSubdomain) => {
   }
 
 }
+
+export const registerDomainForLolaFinance = async (domain, redirectUrl) => {
+  try {
+    const frontendServerIp = process.env.FRONTEND_SERVER_IP;
+
+    let response = await digitalOceanClient.domains.create({ name: domain });
+
+    console.log("Domain", response);
+
+    let recordResponse = await digitalOceanClient.domains.createRecord(domain, { name: '@', type: 'A', ttl: 3600, data: frontendServerIp });
+
+    console.log("Domain record", recordResponse);
+
+    let sslResponse = await generateSSLForDomain(domain, redirectUrl);
+
+    console.log('ssl res',sslResponse);
+
+    return { success: true, reason: `${domain} was successfully created` }
+
+  } catch (err) {
+    console.error(err);
+    return { success: false, reason: err.message }
+  }
+}
+
+export const generateSSLForDomain = async (fullyQualifiedSubdomain, redirectUrl) => {
+  try {
+
+    await sshClient.connect({
+      host: process.env.FRONTEND_SERVER_IP,
+      port: 22,
+      username: process.env.FRONTEND_SERVER_USER,
+      password: process.env.FRONTEND_SERVER_PASSWORD
+    });
+
+    const absolutePath = path.resolve("./digitalocean/setupDomainReverseProxyWithSSL.sh");
+    console.log('path', absolutePath);
+
+    await sshClient.putFile(absolutePath, "/opt/setupDomainReverseProxyWithSSL.sh");
+
+    await sshClient.execCommand("chmod +x /opt/setupDomainReverseProxyWithSSL.sh");
+
+    let commandResponse = await sshClient.execCommand(`/opt/setupDomainReverseProxyWithSSL.sh ${fullyQualifiedSubdomain} ${redirectUrl}`);
+
+    console.log('ssl', commandResponse.stdout)
+
+    if (commandResponse.stderr) {
+      console.error(commandResponse.stderr);
+    }
+
+    return { success: true, reason: `successfully setup ssl for domain ${fullyQualifiedSubdomain}` }
+
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+
+}

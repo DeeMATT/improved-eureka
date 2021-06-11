@@ -18,7 +18,22 @@ app.get('/', async function (req, res) {
   });
 });
 
-app.post('/lolasubdomain', async function (req, res) {
+app.post('/domain', async function (req, res) {
+  var _req$body = req.body,
+      domain = _req$body.domain,
+      redirectUrl = _req$body.redirectUrl;
+
+
+  var result = await (0, _index.registerDomainForLolaFinance)(domain, redirectUrl);
+
+  if (result.success) {
+    return res.json(result);
+  }
+
+  return res.status(500).json(result);
+});
+
+app.post('/subdomain', async function (req, res) {
   var name = req.body.name;
 
 
