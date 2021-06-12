@@ -1,7 +1,7 @@
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
-  value: true
+    value: true
 });
 exports.generateSSLForSubdomain = exports.registerSubdomainForLolaFinance = undefined;
 
@@ -19,88 +19,59 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var digitalOceanClient = new _doWrapper2.default(process.env.DIGITALOCEAN_TOKEN);
 
-// import Client from "ssh2-sftp-client";
-
-
 var sshClient = new _nodeSsh.NodeSSH();
 
 var registerSubdomainForLolaFinance = exports.registerSubdomainForLolaFinance = async function registerSubdomainForLolaFinance(subdomain) {
-  try {
-    var frontendServerIp = process.env.FRONTEND_SERVER_IP;
-    var response = await digitalOceanClient.domains.createRecord("lolafinance.com", { name: subdomain, type: 'A', ttl: 3600, data: frontendServerIp });
+    try {
+        var frontendServerIp = process.env.FRONTEND_SERVER_IP;
+        var response = await digitalOceanClient.domains.createRecord("lolafinance.com", { name: subdomain, type: 'A', ttl: 3600, data: frontendServerIp });
 
-    console.log("Ocean domain", response);
-    // if (response) {
-    //   console.log(response);
-    //   return { success: true, reason: `${subdomain} was successfully created` }
-    // }
+        console.log("Ocean domain", response);
 
-    var sslResponse = await generateSSLForSubdomain(subdomain + ".lolafinance.com");
+        var sslResponse = await generateSSLForSubdomain(subdomain + ".lolafinance.com");
 
-    console.log('ssl res', sslResponse);
+        console.log('ssl res', sslResponse);
 
-    if (sslResponse) {
+        if (sslResponse) {
 
-      return { success: true, reason: subdomain + " was successfully created" };
+            return { success: true, reason: subdomain + " was successfully created" };
+        }
+    } catch (err) {
+        console.error(err);
+        return { success: false, reason: err.message };
     }
-  } catch (err) {
-    console.error(err);
-    return { success: false, reason: err.message };
-  }
 };
 
 var generateSSLForSubdomain = exports.generateSSLForSubdomain = async function generateSSLForSubdomain(fullyQualifiedSubdomain) {
-  try {
+    try {
 
-    var sampleProxy = "https://s3.wasabisys.com/lola-webstore/web/";
+        var sampleProxy = "https://s3.wasabisys.com/lola-webstore/web/";
 
-    await sshClient.connect({
-      host: process.env.FRONTEND_SERVER_IP,
-      port: 22,
-      username: process.env.FRONTEND_SERVER_USER,
-      password: process.env.FRONTEND_SERVER_PASSWORD
-    });
+        await sshClient.connect({
+            host: process.env.FRONTEND_SERVER_IP,
+            port: 22,
+            username: process.env.FRONTEND_SERVER_USER,
+            password: process.env.FRONTEND_SERVER_PASSWORD
+        });
 
-    var absolutePath = _path2.default.resolve("./digitalocean/setupReverseProxyWithSSL.sh");
-    console.log('path', absolutePath);
+        var absolutePath = _path2.default.resolve("./digitalocean/setupReverseProxyWithSSL.sh");
+        console.log('path', absolutePath);
 
-    await sshClient.putFile(absolutePath, "/opt/setupReverseProxyWithSSL.sh");
+        await sshClient.putFile(absolutePath, "/opt/setupReverseProxyWithSSL.sh");
 
-    await sshClient.execCommand("chmod +x /opt/setupReverseProxyWithSSL.sh");
+        await sshClient.execCommand("chmod +x /opt/setupReverseProxyWithSSL.sh");
 
-    // let filePath = '/opt/setupReverseProxyWithSSL.sh';
-    // let newMode = 0o755;  // rw-r-r
-    // let client = new Client();
+        var commandResponse = await sshClient.execCommand("/opt/setupReverseProxyWithSSL.sh " + fullyQualifiedSubdomain + " " + sampleProxy);
 
-    // const config = {
-    //   host: process.env.FRONTEND_SERVER_IP,
-    //   port: '22',
-    //   username: process.env.FRONTEND_SERVER_USER,
-    //   password: process.env.FRONTEND_SERVER_PASSWORD
-    // }
+        console.log('ssl', commandResponse.stdout);
 
-    // client.connect(config)
-    //   .then(() => {
-    //     return client.chmod(filePath, newMode);
-    //   })
-    //   .then(() => {
-    //     return client.end();
-    //   })
-    //   .catch(err => {
-    //     console.error(err.message);
-    //   });
+        if (commandResponse.stderr) {
+            console.error(commandResponse.stderr);
+        }
 
-    var commandResponse = await sshClient.execCommand("/opt/setupReverseProxyWithSSL.sh " + fullyQualifiedSubdomain + " " + sampleProxy);
-
-    console.log('ssl', commandResponse.stdout);
-
-    if (commandResponse.stderr) {
-      throw new Error(commandResponse.stderr);
+        return { success: true, reason: "successfully setup ssl for subdomain " + fullyQualifiedSubdomain };
+    } catch (err) {
+        console.error(err);
+        throw err;
     }
-
-    return { success: true, reason: "successfully setup ssl for subdomain " + fullyQualifiedSubdomain };
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
 };
