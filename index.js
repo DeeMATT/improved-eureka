@@ -7,6 +7,7 @@ app.use(express.json());
 
 //app imports
 import { registerSubdomainForLolaFinance, registerDomainForLolaFinance } from "./digitalocean/index"
+import registerDomainInWhogohost from "./whogohost";
 
 
 
@@ -15,6 +16,17 @@ app.get('/', async (req, res) => {
     'data': 'welcome to lola serve'
   });
 })
+
+app.post('/whogohost/purchase/domain', async (req, res) => {
+
+  let result = await registerDomainInWhogohost(req.body);
+
+  if (result.success) {
+    return res.json(result)
+  }
+
+  return res.status(500).json(result);
+});
 
 app.post('/domain', async (req, res) => {
   const {domain, redirectUrl} = req.body;

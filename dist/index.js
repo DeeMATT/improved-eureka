@@ -1,6 +1,12 @@
-'use strict';
+"use strict";
 
-var _index = require('./digitalocean/index');
+var _index = require("./digitalocean/index");
+
+var _whogohost = require("./whogohost");
+
+var _whogohost2 = _interopRequireDefault(_whogohost);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var express = require('express');
 var app = express();
@@ -16,6 +22,17 @@ app.get('/', async function (req, res) {
   return res.json({
     'data': 'welcome to lola serve'
   });
+});
+
+app.post('/whogohost/purchase/domain', async function (req, res) {
+
+  var result = await (0, _whogohost2.default)(req.body);
+
+  if (result.success) {
+    return res.json(result);
+  }
+
+  return res.status(500).json(result);
 });
 
 app.post('/domain', async function (req, res) {
@@ -47,5 +64,5 @@ app.post('/subdomain', async function (req, res) {
 });
 
 app.listen(port, function () {
-  console.log('Lola Serve Is Running On Port ' + port);
+  console.log("Lola Serve Is Running On Port " + port);
 });
