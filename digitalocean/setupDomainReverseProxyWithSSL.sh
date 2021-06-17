@@ -28,7 +28,7 @@ function generateDomainReverseProxy(){
         #charset koi8-r;
         #access_log  /var/log/nginx/host.access.log  main;
         location / {
-            proxy_pass $proxyTarget;
+            proxy_pass https://app.lolafinance.com;
             proxy_set_header User-Agent \$http_user_agent;
             proxy_set_header X-Real-IP \$remote_addr;
             proxy_set_header Accept-Encoding '""';
