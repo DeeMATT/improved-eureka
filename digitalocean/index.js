@@ -68,12 +68,19 @@ export const generateSSLForSubdomain = async (fullyQualifiedSubdomain) => {
 export const registerDomainForLolaFinance = async (domain, redirectUrl) => {
   try {
     const frontendServerIp = process.env.FRONTEND_SERVER_IP;
+    const nameserver1 = process.env.DIGITALOCEAN_NS1;
+    const nameserver2 = process.env.DIGITALOCEAN_NS2;
+    const nameserver3 = process.env.DIGITALOCEAN_NS3;
 
     let response = await digitalOceanClient.domains.create({ name: domain });
 
     console.log("Domain", response);
 
+    let recordResponse = await digitalOceanClient.domains.createRecord(domain, { name: '@', type: 'NS', ttl: 3600, data: nameserver1 });
+    let recordResponse = await digitalOceanClient.domains.createRecord(domain, { name: '@', type: 'NS', ttl: 3600, data: nameserver2 });
+    let recordResponse = await digitalOceanClient.domains.createRecord(domain, { name: '@', type: 'NS', ttl: 3600, data: nameserver3 });
     let recordResponse = await digitalOceanClient.domains.createRecord(domain, { name: '@', type: 'A', ttl: 3600, data: frontendServerIp });
+    let recordResponse = await digitalOceanClient.domains.createRecord(domain, { name: 'app', type: 'A', ttl: 3600, data: frontendServerIp });
 
     console.log("Domain record", recordResponse);
 
