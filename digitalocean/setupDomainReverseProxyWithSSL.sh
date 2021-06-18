@@ -42,7 +42,7 @@ function generateDomainReverseProxy(){
   sudo rm -rf /etc/nginx/sites-enabled/"$fqdn"
   sudo ln -s /etc/nginx/sites-available/"$fqdn" /etc/nginx/sites-enabled/"$fqdn"
   sudo service nginx reload
-  sudo certbot --nginx -d $fqdn 
+  sudo certbot --nginx -d "$fqdn" 
   sudo certbot --nginx -d app."$fqdn"
 }
 echo "about to call function to start domain installation"
