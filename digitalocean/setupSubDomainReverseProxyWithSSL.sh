@@ -8,9 +8,6 @@ function generateSubDomainReverseProxy(){
       listen       80;
       server_name  $fqdn;
 
-      #charset koi8-r;
-      #access_log  /var/log/nginx/host.access.log  main;
-
       location / {
           proxy_pass https://app.lolafinance.com;
           proxy_set_header User-Agent \$http_user_agent;
