@@ -29,9 +29,9 @@ app.post('/whogohost/purchase/domain', async (req, res) => {
 });
 
 app.post('/domain', async (req, res) => {
-  const {domain, redirectUrl} = req.body;
+  const {domain, templateUrl} = req.body;
 
-  let result = await registerDomainForLolaFinance(domain,redirectUrl);
+  let result = await registerDomainForLolaFinance(domain, templateUrl);
 
   if (result.success) {
     return res.json(result)

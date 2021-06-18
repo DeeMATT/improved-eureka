@@ -65,14 +65,14 @@ export const generateSSLForSubdomain = async (fullyQualifiedSubdomain) => {
 
 }
 
-export const registerDomainForLolaFinance = async (domain, redirectUrl) => {
+export const registerDomainForLolaFinance = async (domain, templateUrl) => {
   try {
     const frontendServerIp = process.env.FRONTEND_SERVER_IP;
 
     await digitalOceanClient.domains.create({ name: domain, ip_address: frontendServerIp });
     await digitalOceanClient.domains.createRecord(domain, { name: 'app', type: 'A', ttl: 3600, data: frontendServerIp });
 
-    let sslResponse = await generateSSLForDomain(domain, redirectUrl);
+    let sslResponse = await generateSSLForDomain(domain, templateUrl);
 
     return { success: true, reason: `${domain} was successfully created` }
 
@@ -82,7 +82,7 @@ export const registerDomainForLolaFinance = async (domain, redirectUrl) => {
   }
 }
 
-export const generateSSLForDomain = async (fullyQualifiedSubdomain, redirectUrl) => {
+export const generateSSLForDomain = async (fullyQualifiedSubdomain, templateUrl) => {
   try {
 
     await sshClient.connect({
@@ -99,7 +99,7 @@ export const generateSSLForDomain = async (fullyQualifiedSubdomain, redirectUrl)
 
     await sshClient.execCommand("chmod +x /opt/setupDomainReverseProxyWithSSL.sh");
 
-    let commandResponse = await sshClient.execCommand(`/opt/setupDomainReverseProxyWithSSL.sh ${fullyQualifiedSubdomain} ${redirectUrl}`);
+    let commandResponse = await sshClient.execCommand(`/opt/setupDomainReverseProxyWithSSL.sh ${fullyQualifiedSubdomain} ${templateUrl}`);
 
     console.log('ssl', commandResponse.stdout)
 
