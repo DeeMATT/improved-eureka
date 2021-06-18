@@ -3,6 +3,7 @@ services:
   web:
     build: .
     command: npm start
+    restart: always
     ports:
       - "8099:8099"
     environment:

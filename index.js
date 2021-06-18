@@ -6,7 +6,8 @@ const port = process.env.PORT || 5000;
 app.use(express.json());
 
 //app imports
-import { registerSubdomainForLolaFinance } from "./digitalocean/index"
+import { registerSubdomainForLolaFinance, registerDomainForLolaFinance } from "./digitalocean/index"
+import registerDomainInWhogohost from "./whogohost";
 
 
 
@@ -16,8 +17,30 @@ app.get('/', async (req, res) => {
   });
 })
 
+app.post('/whogohost/purchase/domain', async (req, res) => {
 
-app.post('/lolasubdomain', async (req, res) => {
+  let result = await registerDomainInWhogohost(req.body);
+
+  if (result.success) {
+    return res.json(result)
+  }
+
+  return res.status(500).json(result);
+});
+
+app.post('/domain', async (req, res) => {
+  const {domain, redirectUrl} = req.body;
+
+  let result = await registerDomainForLolaFinance(domain,redirectUrl);
+
+  if (result.success) {
+    return res.json(result)
+  }
+
+  return res.status(500).json(result);
+});
+
+app.post('/subdomain', async (req, res) => {
   const { name } = req.body;
 
   let result = await registerSubdomainForLolaFinance(name);
@@ -27,7 +50,6 @@ app.post('/lolasubdomain', async (req, res) => {
   }
 
   return res.status(500).json(result);
-
 });
 
 

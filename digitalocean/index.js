@@ -33,8 +33,6 @@ export const registerSubdomainForLolaFinance = async (subdomain) => {
 export const generateSSLForSubdomain = async (fullyQualifiedSubdomain) => {
   try {
 
-    const sampleProxy = "https://s3.wasabisys.com/lola-webstore/web/";
-
     await sshClient.connect({
       host: process.env.FRONTEND_SERVER_IP,
       port: 22,
@@ -42,14 +40,14 @@ export const generateSSLForSubdomain = async (fullyQualifiedSubdomain) => {
       password: process.env.FRONTEND_SERVER_PASSWORD
     });
 
-    const absolutePath = path.resolve("./digitalocean/setupReverseProxyWithSSL.sh");
+    const absolutePath = path.resolve("./digitalocean/setupSubDomainReverseProxyWithSSL.sh");
     console.log('path', absolutePath);
 
-    await sshClient.putFile(absolutePath, "/opt/setupReverseProxyWithSSL.sh");
+    await sshClient.putFile(absolutePath, "/opt/setupSubDomainReverseProxyWithSSL.sh");
 
-    await sshClient.execCommand("chmod +x /opt/setupReverseProxyWithSSL.sh");
+    await sshClient.execCommand("chmod +x /opt/setupSubDomainReverseProxyWithSSL.sh");
 
-    let commandResponse = await sshClient.execCommand(`/opt/setupReverseProxyWithSSL.sh ${fullyQualifiedSubdomain} ${sampleProxy}`);
+    let commandResponse = await sshClient.execCommand(`/opt/setupSubDomainReverseProxyWithSSL.sh ${fullyQualifiedSubdomain}`);
 
     console.log('ssl', commandResponse.stdout)
 
@@ -59,6 +57,71 @@ export const generateSSLForSubdomain = async (fullyQualifiedSubdomain) => {
 
     return { success: true, reason: `successfully setup ssl for subdomain ${fullyQualifiedSubdomain}` }
 
+
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+
+}
+
+export const registerDomainForLolaFinance = async (domain, redirectUrl) => {
+  try {
+    const frontendServerIp = process.env.FRONTEND_SERVER_IP;
+    const nameserver1 = process.env.DIGITALOCEAN_NS1;
+    const nameserver2 = process.env.DIGITALOCEAN_NS2;
+    const nameserver3 = process.env.DIGITALOCEAN_NS3;
+
+    let response = await digitalOceanClient.domains.create({ name: domain });
+
+    console.log("Domain", response);
+
+    let recordResponse = await digitalOceanClient.domains.createRecord(domain, { name: '@', type: 'NS', ttl: 3600, data: nameserver1 });
+    let recordResponse = await digitalOceanClient.domains.createRecord(domain, { name: '@', type: 'NS', ttl: 3600, data: nameserver2 });
+    let recordResponse = await digitalOceanClient.domains.createRecord(domain, { name: '@', type: 'NS', ttl: 3600, data: nameserver3 });
+    let recordResponse = await digitalOceanClient.domains.createRecord(domain, { name: '@', type: 'A', ttl: 3600, data: frontendServerIp });
+    let recordResponse = await digitalOceanClient.domains.createRecord(domain, { name: 'app', type: 'A', ttl: 3600, data: frontendServerIp });
+
+    console.log("Domain record", recordResponse);
+
+    let sslResponse = await generateSSLForDomain(domain, redirectUrl);
+
+    console.log('ssl res',sslResponse);
+
+    return { success: true, reason: `${domain} was successfully created` }
+
+  } catch (err) {
+    console.error(err);
+    return { success: false, reason: err.message }
+  }
+}
+
+export const generateSSLForDomain = async (fullyQualifiedSubdomain, redirectUrl) => {
+  try {
+
+    await sshClient.connect({
+      host: process.env.FRONTEND_SERVER_IP,
+      port: 22,
+      username: process.env.FRONTEND_SERVER_USER,
+      password: process.env.FRONTEND_SERVER_PASSWORD
+    });
+
+    const absolutePath = path.resolve("./digitalocean/setupDomainReverseProxyWithSSL.sh");
+    console.log('path', absolutePath);
+
+    await sshClient.putFile(absolutePath, "/opt/setupDomainReverseProxyWithSSL.sh");
+
+    await sshClient.execCommand("chmod +x /opt/setupDomainReverseProxyWithSSL.sh");
+
+    let commandResponse = await sshClient.execCommand(`/opt/setupDomainReverseProxyWithSSL.sh ${fullyQualifiedSubdomain} ${redirectUrl}`);
+
+    console.log('ssl', commandResponse.stdout)
+
+    if (commandResponse.stderr) {
+      console.error(commandResponse.stderr);
+    }
+
+    return { success: true, reason: `successfully setup ssl for domain ${fullyQualifiedSubdomain}` }
 
   } catch (err) {
     console.error(err);

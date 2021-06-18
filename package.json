@@ -19,6 +19,7 @@
   },
   "homepage": "https://gitlab.com/baseafrique/lola-serve#readme",
   "dependencies": {
+    "axios": "^0.21.1",
     "do-wrapper": "^4.5.1",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
