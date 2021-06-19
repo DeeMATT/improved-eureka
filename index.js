@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const templateService = require("./template-service");
+import templateService from "./template-service";
 
 const port = process.env.PORT || 5000;
 

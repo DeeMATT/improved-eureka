@@ -1,16 +1,13 @@
 "use strict";
 
 var ejs = require("ejs");
-var fs = require("fs");
 
-var buildTemplate = function buildTemplate(templateFile, data) {
+var buildTemplate = function buildTemplate(templateString, data) {
   try {
-    var templateString = fs.readFileSync(templateFile).toString();
-
     var template = ejs.compile(templateString);
     var html = template(data);
 
-    fs.writeFileSync(templateFile, html);
+    return html;
   } catch (error) {
     throw error;
   }

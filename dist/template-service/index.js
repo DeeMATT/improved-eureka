@@ -1,32 +1,75 @@
 "use strict";
 
-var express = require("express");
-var router = express.Router();
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 
-var buildTemplate = require("./compiler");
-var zipHandler = require("./fileHandler");
+var _express = require("express");
 
-var _require = require("./zipHelper"),
-    zipDir = _require.zipDir;
+var _express2 = _interopRequireDefault(_express);
+
+var _jszip = require("jszip");
+
+var _jszip2 = _interopRequireDefault(_jszip);
+
+var _compiler = require("./compiler");
+
+var _compiler2 = _interopRequireDefault(_compiler);
+
+var _request = require("./request");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var router = _express2.default.Router();
 
 router.post("/generate-template", async function (req, res, next) {
   var _req$body = req.body,
       fileUrl = _req$body.fileUrl,
-      data = _req$body.data;
+      dataSpec = _req$body.dataSpec,
+      domain = _req$body.domain;
+
+
+  if (!fileUrl) return res.json({
+    success: false,
+    message: "fileUrl is missing in request body"
+  });
+
+  if (!dataSpec) return res.json({
+    success: false,
+    message: "dataSpec is missing in request body"
+  });
+
+  if (!domain) return res.json({
+    success: false,
+    message: "domain is missing in request body"
+  });
 
   try {
-    var file = await zipHandler(fileUrl);
-    var templateFile = file.dirPath + "/index.html";
+    var fileData = await (0, _request.getFile)(fileUrl);
 
-    // overwites the initial template index.html
-    buildTemplate(templateFile, data);
+    var newZip = new _jszip2.default();
+    var zip = await newZip.loadAsync(fileData);
+    var templateString = await zip.file("index.html").async("string");
 
-    var templateZip = zipDir(file.dirPath);
-    //Upload to main service
-    //unlink file
+    var html = (0, _compiler2.default)(templateString, dataSpec);
+
+    zip.file("index.html", html);
+
+    var result = zip.generateNodeStream({
+      type: "nodebuffer",
+      streamFiles: true
+    });
+
+    var deployData = await (0, _request.deployFile)(domain, result);
+
+    return res.json({
+      success: true,
+      message: "done",
+      data: deployData
+    });
   } catch (error) {
     next(error);
   }
 });
 
-module.exports = router;
+exports.default = router;

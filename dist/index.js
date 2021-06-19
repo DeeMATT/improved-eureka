@@ -1,10 +1,16 @@
 "use strict";
 
+var _templateService = require("./template-service");
+
+var _templateService2 = _interopRequireDefault(_templateService);
+
 var _index = require("./digitalocean/index");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var express = require("express");
 var app = express();
-var templateService = require("./template-service");
+
 
 var port = process.env.PORT || 5000;
 
@@ -32,7 +38,7 @@ app.post("/lolasubdomain", async function (req, res) {
   return res.status(500).json(result);
 });
 
-app.use(templateService);
+app.use(_templateService2.default);
 
 app.use(function (req, res, next) {
   var err = new Error();

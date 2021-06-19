@@ -1,14 +1,11 @@
 const ejs = require("ejs");
-const fs = require("fs");
 
-const buildTemplate = (templateFile, data) => {
+const buildTemplate = (templateString, data) => {
   try {
-    const templateString = fs.readFileSync(templateFile).toString();
-
     const template = ejs.compile(templateString);
     const html = template(data);
 
-    fs.writeFileSync(templateFile, html);
+    return html;
   } catch (error) {
     throw error;
   }
