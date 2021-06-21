@@ -1,9 +1,10 @@
-const express = require("express");
+import express from "express";
+import cors from "cors";
 const app = express();
-import templateService from "./template-service";
 
 const port = process.env.PORT || 5000;
 
+app.use(cors());
 app.use(express.json());
 
 //app imports
@@ -12,6 +13,7 @@ import {
   registerDomainForLolaFinance,
 } from "./digitalocean/index";
 import registerDomainInWhogohost from "./whogohost";
+import templateService from "./template-service";
 
 app.get("/", async (req, res) => {
   return res.json({
