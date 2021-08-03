@@ -11,17 +11,24 @@ function generateDomainReverseProxy(){
 
         location = / {
                   proxy_pass "$proxyTarget"index.html;
-          }
-          location / {
-              proxy_pass $proxyTarget;
-              proxy_set_header User-Agent \$http_user_agent;
-              proxy_set_header X-Real-IP \$remote_addr;
-              proxy_set_header Accept-Encoding '""';
-              proxy_set_header Accept-Language \$http_accept_language;
-              proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-          }
+        }
+        location / {
+            proxy_pass $proxyTarget;
+            proxy_set_header User-Agent \$http_user_agent;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header Accept-Encoding '""';
+            proxy_set_header Accept-Language \$http_accept_language;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        }
+        }
+        location /signin {
+            rewrite ^ https://app."$proxyTarget"$request_uri? permanent;
+        }
 
-    }
+        location /signup {
+            rewrite ^ https://app."$proxyTarget"$request_uri? permanent;
+        }
+
 
     server {
         listen       80;
